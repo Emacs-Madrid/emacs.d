@@ -141,7 +141,19 @@ ver lo que has ido pulsando para no perderte.
 Por defecto algunas cosas en Emacs se pueden sentir un poco alienígenas o peor aún que
 nos de la ilusión que la potencia del editor es bastante limitada. Vamos a arreglar eso.
 
-** Edición CamelCase-aware
+** Reemplazar selección
+Si tienes un texto seleccionado y comienzas a escribir verás
+que para tu sorpresa Emacs no borra el texto seleccionado sino
+que añade el texto al final de la selección.
+Si quieres el comportamiento utilizado por practicamente el
+resto de editores de texto, es decir, que al escribir el texto
+nuevo reemplace al seleccionado, utiliza lo siguiente:
+
+#+BEGIN_SRC elisp
+  (delete-selection-mode)
+#+END_SRC
+
+** CamelCase-aware
 Con este modo activo logramos que palabras en camel-cse como ~HelloWorld There~
 se comporten como dos palabras separadas, es decir, si tenemos el cursor
 sobre la ~H~ y ejecutamos ~M-f~ el cursor se dentrendrá en la ~W~ en lugar
@@ -185,14 +197,14 @@ a otros contextos:
   (global-set-key (kbd "C-x C-i") 'idomenu)
 #+END_SRC
 
-** Parpadeo del cursor
+** Cursor
 Con este modo podemos decirle a Emacs que no parpadee el cursor.
 
 #+BEGIN_SRC elisp
   (blink-cursor-mode -1)
 #+END_SRC
 
-** Ocultar scroll-bars y la barra de herramientas
+** Clean state
 Eliminemos las innecesarias "scroll-bars" y la barra de herramientas
 que ocupa un espacio sagrado.
 
@@ -211,7 +223,7 @@ combinación de teclado para mostrarla y ocultarla según necesitemos.
   (global-set-key (kbd "C-<f5>") 'toggle-menu-bar-mode-from-frame)
 #+END_SRC
 
-** Mostrar la ausencia de líneas
+** Ausencia de líneas
 Si activamos esta opción Emacs mostrará unas rayas en la franja izquierda de la ventana
 para indicarnos que esa parte del buffer no tiene líneas.
 
@@ -220,7 +232,7 @@ para indicarnos que esa parte del buffer no tiene líneas.
   (fringe-mode '(4 . 0))
 #+END_SRC
 
-** Auto-recargar los ficheros que han sido editados fuera de Emacs
+** Auto-recargar ficheros
 Si tienes un archivo abierto en Emacs y es modificado por una aplicación externa por
 defecto el buffer del archivo en Emacs no refleja los cambios hasta que intentes
 editarlo. Con este modo activo hacemos que Emacs recargue automáticamente el archivo
@@ -232,18 +244,7 @@ al detectar que ha sido modificado.
   (setq auto-revert-verbose nil)
 #+END_SRC
 
-** Resaltar los caracteres que constituyen pares
-Con este mode activo al posicionar el cursor sobre algún caracter "par", este caracter
-y el caracter complementario son resaltados. Caracteres pares son:
-- ( y )
-- { y }
-- [ y ]
-
-#+BEGIN_SRC elisp
-  (show-paren-mode)
-#+END_SRC
-
-** Acceder a los "Archivos Recientes"
+** Archivos Recientes
 Con =recentf-mode= activo tendremos acceso a ficheros abiertos recientemente en File > Open Recent.
 
 #+BEGIN_SRC elisp
@@ -263,7 +264,7 @@ múltiples al estilo SublimeText. [[http://www.youtube.com/watch?v%3DjNa3axo40qM
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 #+END_SRC
 
-** Control del cursor
+** Super cursor
 =ace-jump-mode= es un modo que te permite mover el cursor a donde
 quieras en cualquiera de las ventanas que tengas abiertas. [[http://emacsrocks.com/e10.html][-demo-]]
 
@@ -272,7 +273,18 @@ quieras en cualquiera de las ventanas que tengas abiertas. [[http://emacsrocks.c
   (global-set-key (kbd "C-o") 'ace-jump-mode)  
 #+END_SRC
 
-** Auto-cerrado de "pares"
+** Resaltar pares
+Con este mode activo al posicionar el cursor sobre algún caracter "par", este caracter
+y el caracter complementario son resaltados. Caracteres pares son:
+- ( y )
+- { y }
+- [ y ]
+
+#+BEGIN_SRC elisp
+  (show-paren-mode)
+#+END_SRC
+
+** Auto-cerrado de pares
 Se ha convertido en tendencia en numerosos editores el hecho de
 que al abrir un paréntesis por ejemplo, el editor automáticamente
 inserte el paréntesis de cierre.
@@ -342,15 +354,40 @@ selección utilizando /unidades semánticas/. [[http://emacsrocks.com/e09.html][
   (global-set-key (kbd "C-!") 'er/contract-region)
 #+END_SRC
 
-** Analizar la sintaxis on-the-fly
-=flycheck=
+** Buffers con el mismo nombre
+Cuando tienes dos buffers con el mismo nombre Emacs por defecto te
+renombra el segundo añadiéndole al final el suffijo ~<2>~ para
+desambigüar, el 2 es por que hay dos buffers con el mismo nombre, si
+hubieran tres uno tendría el sufijo ~<2>~ y otro el sufijo ~<3>~.  Por
+supuesto, esto está lejos de lo ideal y me sorprende que sea el
+comportamiento por defecto, no obstante podemos arreglarlo con lo
+siguiente:
 
-[[file:img/flycheck.png]]
+#+BEGIN_SRC elisp
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'post-forward)
+#+END_SRC
 
-** Soporte para snippets
-Yasnippet
+Aquí estamos utilizando el estilo /post-forward/ que muestra el
+nombre del buffer de la siguiente manera:
+
+[[file:img/emacs-post-forward-1.png]]
+
+Es decir, utiliza como sufijo el nombre del directorio que contiene
+al fichero asociado al buffer. Puedes ver los otros estilos a través
+de =M-x customize-group<RET>uniquify= y específicamente en la opción
+~Uniquify Buffer Name Style~.
+
 ** Sexy
-pretty-mode
+Por último vamos a utilizar el modo =pretty-mode= para sustituir
+algunos nombres de nuestro lenguaje de programación por caracteres
+unicode más expresivos:
+
+#+BEGIN_SRC elisp
+  (require 'pretty-mode)
+  (global-pretty-mode)
+#+END_SRC
+
 * Soporte para proyectos
 :PROPERTIES:
 :noweb-ref: modos
@@ -437,6 +474,92 @@ esconder fácilmente la barra lateral con ~C-<F7>~.
   (global-set-key (kbd "C-<f7>") 'sr-speedbar-toggle) 
 #+END_SRC
 
-** Projectile
-** Magit
+** Analizar la sintaxis on-the-fly
+=flycheck= es un modo global para Emacs que analiza la sintaxis
+de nuestro código /on-the-fly/ y que soporta un montón de lenguajes.
+Vamos a hacernos un favor y activar el modo para todos nuestros buffers:
+
+#+BEGIN_SRC elisp
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+#+END_SRC
+
+[[file:img/flycheck.png]]
+
+** Soporte para snippets
+=Yasnippet= es el modo de la mano del cuál tendremos acceso
+a snippets. Si has sido usuario de TextMate alguna vez con
+este modo te sentirás como en casa:
+
+#+BEGIN_SRC elisp
+  (require 'yasnippet)
+  (yas-global-mode 1)
+#+END_SRC
+
+** Múltiples archivos
+[[https://github.com/bbatsov/projectile][Projectile]] es otro modo global que nos facilita el trabajo con
+proyectos, de hecho una de las cosas que más me gusta es que
+sin necesidad de configurar nada automáticamente detecta si estás
+trabajando en un repositorio git y considera ese repositorio como
+el proyecto.
+
+#+BEGIN_SRC elisp
+  (require 'projectile)
+  (projectile-global-mode)
+#+END_SRC
+
+** Git
+[[https://github.com/magit/magit][Magit]] es una interfaz para trabajar con git a través de Emacs.
+
+#+BEGIN_SRC elisp
+  (require 'magit)
+#+END_SRC
+
 ** Terminal
+[[https://github.com/milkypostman/multi-term][multi-term]] es mi herramienta favorita cuando quiero abrir terminales
+desde dentro de Emacs.
+
+#+BEGIN_SRC elisp
+  (require 'multi-term)
+  
+  (defun custom-term-mode ()
+    (interactive)
+    (multi-term-keystroke-setup)
+    (setq term-bind-key-alist
+          (list
+           (cons "C-c C-j" 'term-line-mode)
+           (cons "C-c C-k" 'term-char-mode)
+           (cons "C-c C-c" 'term-interrupt-subjob)
+           (cons "C-c C-z" 'term-stop-subjob)
+           (cons "C-r" 'term-send-raw)
+           (cons "C-p" 'term-send-raw)
+           (cons "C-n" 'term-send-raw)
+           (cons "C-a" 'term-send-raw)
+           (cons "C-d" 'term-send-raw)
+           (cons "C-w" 'term-send-raw)
+           (cons "C-h" 'term-send-raw)
+           (cons "M-b" 'term-send-backward-word)
+           (cons "M-f" 'term-send-forward-word)
+           (cons "M-d" 'term-send-forward-kill-word)
+           (cons "M-." 'term-send-raw-meta)
+           (cons "C-k" 'term-send-raw))
+          term-buffer-maximum-size 10000)
+    (setq term-buffer-maximum-size 10000)
+    (define-key term-raw-map (kbd "C-y") 'term-paste)
+    (define-key term-raw-map (kbd "C-c C-e") 'custom-term-send-esc)
+    (define-key term-raw-map (kbd "C-<backspace>") 'custom-term-send-backward-kill-word)
+    (add-to-list 'term-bind-key-alist '("M-[" . multi-term-prev))
+    (add-to-list 'term-bind-key-alist '("M-]" . multi-term-next)))
+  
+  (defun custom-term-send-esc ()
+    "Send ESC in term mode."
+    (interactive)
+    (term-send-raw-string "\e"))
+  
+  (add-hook 'term-mode-hook 'custom-term-mode)
+  
+  (defun custom-term-send-backward-kill-word ()
+    "Send backward kill word ^w"
+    (interactive)
+    (term-send-raw-string ""))
+  
+#+END_SRC
