@@ -841,6 +841,25 @@ este comando en su lugar:
     "C-x k" :default kill-buffer :C-u kill-this-buffer-and-file)
 #+END_SRC
 
+-----
+
+Renombrar el buffer actual y su fichero correspondiente:
+El comando original es de Steve Yegge: [[[http://steve.yegge.googlepages.com/my-dot-emacs-file%0A][link]]].
+#+BEGIN_SRC elisp
+  (defun rename-buffer-and-file (new-name)
+    "Renames both current buffer and file it's visiting to NEW-NAME."
+    (interactive "sNew name for buffer and file: ")
+    (let ((name (buffer-name))
+          (filename (buffer-file-name)))
+      (if (not filename)
+          (message "Buffer '%s' is not visiting a file!" name)
+        (if (get-buffer new-name)
+            (message "A buffer named '%s' already exists!" new-name)
+          (rename-file name new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)))))
+#+END_SRC
 * --
 #+BEGIN_SRC elisp :tangle ~/.emacs.d/init.el :noweb yes
   <<cask>>
