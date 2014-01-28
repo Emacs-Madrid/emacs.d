@@ -1,4 +1,7 @@
-#+TITLE: Configura Emacs según convenciones modernas
+#+TITLE: Configuración literal de Emacs de ikame
+
+[[file:img/emacs-screenshot.png]]
+
 * Gestión de paquetes
 Aún cuando la configuración por defecto de Emacs fuese expectacular,
 lo más probable es que en algún momento necesites extenderla ya sea
@@ -594,7 +597,7 @@ agrupe las pestañas en tres grupos principales:
       ((eq major-mode 'dired-mode) "Dired")
       (t "User"))))
   
-  (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
+  (eval-after-load "tabbar" '(setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups))
 #+END_SRC
 
 Podemos activar y desactivar las pestañas con ~C-F6~ y por defecto
@@ -830,12 +833,12 @@ este comando en su lugar:
    <<general>>
   )
   
+  <<modos>>
+  
   <<lisp>>
 
   <<apariencia>>
 
-  <<modos>>
-  
   <<diminish>>
 
   <<python>>
