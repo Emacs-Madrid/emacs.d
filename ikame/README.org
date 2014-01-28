@@ -1,147 +1,286 @@
 #+TITLE: Configura Emacs según convenciones modernas
-#+BEGIN_SRC elisp :tangle ~/.emacs.d/init.el :noweb yes
-  <<cask>>
-
-  (setq
-   <<general>>
-  )
-
-  <<modos>>
-#+END_SRC
-
 * Gestión de paquetes
-Aún cuando la configuración por defecto de Emacs fuese expectacular, lo más probable
-es que en algún momento necesites extenderla ya sea porque Emacs no ofrezca soporte
-para ese lenguaje esotérico que utilizas o bien porque alguien ha desarrollado por
-su cuenta [[https://github.com/vibhavp/emacs-xkcd][algo que necesitas desesperadamente para vivir]].
+Aún cuando la configuración por defecto de Emacs fuese expectacular,
+lo más probable es que en algún momento necesites extenderla ya sea
+porque Emacs no ofrezca soporte para ese lenguaje esotérico que
+utilizas o bien porque alguien ha desarrollado por su cuenta [[https://github.com/vibhavp/emacs-xkcd][algo que
+necesitas desesperadamente para vivir]].
 
-Desde Emacs24 se incluye por defecto el paquete =package.el= que viene siendo algo
-como lo que =apt= es para debian, =pacman= para archlinux y =homebrew= para osx.
+Desde Emacs24 se incluye por defecto el paquete ~package.el~ que viene
+siendo algo como lo que ~apt~ es para debian, ~pacman~ para archlinux
+y ~homebrew~ para osx.
 
-=package.el= viene preparado para utilizar un repositorio de paquetes llamado
-[[http://elpa.gnu.org/][ELPA]] (Emacs Lisp Package Archive).
+~package.el~ viene preparado para utilizar un repositorio de paquetes
+llamado [[http://elpa.gnu.org/][ELPA]] (Emacs Lisp Package Archive).
 
-Ejecuta =M-x list-packages= para ver un listado de los paquetes que puedes instalar
-desde ELPA.
+Ejecuta ~M-x list-packages~ para ver un listado de los paquetes que
+puedes instalar desde ELPA o ~M-x package-install~ y el nombre del
+paquete para instalarlo directamente.
 
-Aparte de ELPA, existen otros dos repositorios que pueden utilizarse con =package.el=:
+Aparte de ELPA, existen otros dos repositorios que pueden utilizarse
+con ~package.el~:
 - [[http://melpa.milkbox.net/#/][MELPA]] (Milkypostman’s Emacs Lisp Package Archive)
 - [[http://marmalade-repo.org/][Marmalade]]
 
-** Espera un momento...
-Hasta ahora parece todo perfecto, pero luego de utilizar este método por unos días
-te darás cuenta de que tiene una enorme deficiencia:
+Luego de utilizar este método por unos días te darás cuenta de que
+tiene una enorme deficiencia:
 
-/No hay ningún tipo de "log" de los paquetes que has instalado que puedas utilizar
-para reinstalar los mismos paquetes en una máquina nueva./
+/No hay ningún tipo de "log" de los paquetes que has instalado que
+puedas utilizar para reinstalar los mismos paquetes en una máquina
+nueva./
 
-** La solución: Cask
+La solución: Cask
+
+** Cask
 [[http://cask.github.io/][Cask]] es un gestor de paquetes para Emacs (entre otras cosas).
-Su objetivo es facilitar la gestión de paquetes que instales a través del gestor
-de paquetes de Emacs.
+Su objetivo es facilitar la gestión de paquetes que instales a través
+del gestor de paquetes de Emacs.
 
-Instalar Cask:
+*** Instalación en el sistema
+Para instalar Cask solo tenemos que ejecutar lo siguiente en un
+terminal:
 #+BEGIN_SRC sh
-  cd
-  mkdir -p .emacs.d && cd .emacs.d
   curl -fsSkL https://raw.github.com/cask/cask/master/go | python
 #+END_SRC
 
-La piedra angular de Cask es el Cask-file que no es más que el "log" que necesitábamos
-para llevar el inventario de nuestros paquetes:
+Luego de eso debemos de tener el ejecutable ~cask~ en =~/.cask/bin=.
 
-#+BEGIN_SRC elisp :tangle ~/.emacs.d/Cask :mkdirp yes
-(source marmalade)
-(source melpa)
-(source org)
-
-(depends-on "multiple-cursors")
-(depends-on "org")
-(depends-on "org-present")
-#+END_SRC
-
-** Activar Cask
+*** Instalación en Emacs
 :PROPERTIES:
 :noweb-ref: cask
 :END:
 
-Para activar los paquetes que instalamos con Cask necesitamos añadir lo siguiente
-a nuestro archivo de configuración de Emacs =.emacs.d/init.el=:
+Para que Emacs sepa como cargar los paquetes instalados mediante Cask
+necesitamos esto justo en el principio de nuestra configuración antes
+de intentar hacer uso de los paquetes que hemos instalado con Cask:
 
 #+BEGIN_SRC elisp
-(require 'cask "~/.cask/cask.el")
-(cask-initialize)
+  (require 'cask "~/.cask/cask.el")
+  (cask-initialize)
 #+END_SRC
 
-** Replicar configuración en otra máquina
-De esta forma, si queremos instalar todos nuestros paquetes en otra máquina solo necesitamos tener una copia de nuestro Cask-file (y cask instalado por supuesto)
-y ejecutar:
+*** El fichero ~Cask~
+La piedra angular de Cask es el archivo ~Cask~ que vive dentro de
+nuestro directorio ~emacs.d~ (si no existe lo creamos) y que no es más
+que el "log" que necesitábamos para llevar el inventario de nuestros
+paquetes:
 
+#+BEGIN_SRC elisp :tangle ~/.emacs.d/Cask :mkdirp yes
+  (source org)
+  (source gnu)
+  (source melpa)
+  (source marmalade)
+#+END_SRC
+
+Aquí no estamos especificando ningún paquete a instalar aún, simplemente estamos
+especificando a qué repositorios de paquetes queremos tener acceso. Los que he
+puesto son lo más populares por lo que es probable que si el paquete que buscas
+no se encuentra en ninguno de ellos no se encuentre en ningún otro.
+
+*** El programa ~cask~
+El binario que tenemos instalado en =~/.cask/bin/cask= es el programa
+que vamos a utilizar para instalar/actualizar nuestros paquetes
+definidos en nuestro ficher ~Cask~:
+
+Instalar paquetes que no tengamos instalados:
 #+BEGIN_SRC sh
 cd ~/.emacs.d
 cask install
 #+END_SRC
 
-** Espera otro momento...
-Otra vez, parece todo perfecto, pero notarás que lo más común a la hora de instalar
-un paquete es:
-1. Ejecutar ~M-x list-packages~
-2. Buscar el paquete y leer su descripción
-3. Instalar el paquete
+Actualizar todos los paquetes:
+#+BEGIN_SRC sh
+cd ~/.emacs.d
+cask update
+#+END_SRC
 
-Dado que has instalado el paquete a través del gestor de paquetes y no de Cask
-necesitas actualizar tu Cask-file con dicho paquete. Haz esto más de tres veces
-y se convertirá en una pesadilla.
+*** El problema con Cask
+Existe un problema con Cask. Notarás que lo más común a la hora de
+instalar un paquete es:
+1. Ejecutar ~M-x list-packages~.
+2. Buscar el paquete y leer su descripción.
+3. Instalar el paquete.
 
-** Pallet al rescate
-[[https://github.com/rdallasgray/pallet][Pallet]] es otro gestor de paquetes que utilza Cask como plataforma.
-Con estos comandos verás inmediatamente el por qué de su necesidad:
-- ~M-x pallet-init~: Crea tu Cask-file con todos los paquetes que tienes has
-  instalado con =package.el=.
-- ~M-x pallet-install~: Instala todos los paquetes listados en tu Cask-file.
-- ~M-x pallet-update~: Actualiza todos los paquetes listados en tu Cask-file.
+El problema radica en que dado que has instalado el paquete a través
+del gestor de paquetes y no del programa ~cask~ necesitas actualizar
+tu fichero ~Cask~ para que refleje la dependencia a dicho paquete.
+Haz esto más de tres veces y se convertirá en un coñazo.
 
-Además, cada vez que instales un paquete desde el listado de paquetes (
-~M-x list-packages~) añadirá ese paquete automáticamente a tu Cask-file.
+La solución: Pallet.
 
-* Configuración general básica
+** Pallet
+[[https://github.com/rdallasgray/pallet][Pallet]] es otro gestor de paquetes que utiliza Cask como plataforma y
+nos soluciona el problema de sincronización de nuestro fichero ~Cask~.
+
+Con estos comandos verás inmediatamente su utilidad:
+- ~M-x pallet-init~: Crea tu Cask-file con todos los paquetes que has
+  instalado a través ~package~.
+- ~M-x pallet-install~: Instala todos los paquetes declarados en tu
+  Cask-file.
+- ~M-x pallet-update~: Actualiza todos los paquetes declarados en tu
+  Cask-file.
+
+Mejor aún, cada vez que instales un paquete desde el listado de
+paquetes ( ~M-x list-packages~) Pallet añadirá ese paquete
+automáticamente como dependencia a tu archivo ~Cask~.
+
+* Modernización
+Por defecto algunas cosas en Emacs se pueden sentir un poco
+alienígenas o peor aún nos de la ilusión de que la potencia del editor
+es bastante limitada. Vamos a arreglar eso para que el comienzo sea
+más fácil.
+
+** Configuración general básica
 :PROPERTIES:
 :noweb-ref: general
 :END:
 
-** Quitar pantalla de bienvenida
+Hagamos que cada vez que reinicies Emacs no aparezca la pantalla de
+bienvenida:
 #+BEGIN_SRC elisp
   inhibit-startup-message t
 #+END_SRC
 
-** Mostrar la columna en la que está el cursor
+Mostremos el número de la columna en la que está el cursor en el
+~modeline~:
 #+BEGIN_SRC elisp
   column-number-mode t
 #+END_SRC
 
-** Mostrar el tamaño del buffer y nuestra posición en él
+Mostremos el tamaño del buffer y nuestra posición en él en el
+~modeline~:
 #+BEGIN_SRC elisp
   size-indication-mode t
 #+END_SRC
 
-** Mostrar las pulsaciones de teclado
-Para las veces que necesitas ejecutar un comando que requiere varias
-pulsaciones de teclado, por ejemplo =C-c C-v C-t=, puede que quieras
-ver lo que has ido pulsando para no perderte.
-
+Acortemos el tiempo que tarda Emacs en darnos feedback de las
+pulsaciones de teclado que hemos tecleado (el tiempo original es de 1
+segundo):
 #+BEGIN_SRC elisp
   echo-keystrokes 0.2
 #+END_SRC
 
-* Modernización For The Win
+** Apariencia
+:PROPERTIES:
+:noweb-ref: apariencia
+:END:
+*** Cursor
+Con este modo podemos decirle a Emacs que no parpadee el cursor.
+
+#+BEGIN_SRC elisp
+  (blink-cursor-mode -1)
+#+END_SRC
+
+*** Apariencia
+Eliminemos las innecesarias "scroll-bars" y la barra de herramientas
+que ocupa un espacio sagrado.
+
+#+BEGIN_SRC elisp
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+#+END_SRC
+
+La barra de menu ha resultado ser de gran ayuda para los principiantes
+ya que es una forma rápida de navegar por las distintas acciones que
+te da el modo en el que estás trabajando por lo que creamos una
+combinación de teclado para mostrarla y ocultarla según necesitemos.
+
+#+BEGIN_SRC elisp
+  (global-set-key (kbd "C-<f5>") 'toggle-menu-bar-mode-from-frame)
+#+END_SRC
+
+#+BEGIN_SRC elisp
+  (require 'diminish)
+  (eval-after-load "wrap-region" '(diminish 'wrap-region-mode))
+  (eval-after-load "smartparens" '(diminish 'smartparens-mode))
+  (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+  (eval-after-load "projectile" '(diminish 'projectile-mode))
+  (eval-after-load "flycheck" '(diminish 'flycheck-mode))
+#+END_SRC
+
+*** Ausencia de líneas
+Si activamos esta opción Emacs mostrará unas rayas en la franja izquierda de la ventana
+para indicarnos que esa parte del buffer no tiene líneas.
+
+#+BEGIN_SRC elisp
+  (toggle-indicate-empty-lines)
+  (fringe-mode '(4 . 0))
+#+END_SRC
+
+*** Esquema de colores
+Vamos a utilizar el esquema de colores solarized en su variante oscura
+por defecto pero definiremos una función para cambiar entre la
+variante oscura y la clara con un atajo.
+
+Empezamos por definir una variable que apuntará al nombre del esquema
+de colores que estamos utilizando:
+#+BEGIN_SRC elisp
+  (defvar current-theme nil "Name of the theme being used.")
+#+END_SRC
+
+Seguimos con la definición de una variable que apuntará a una lista de
+funciones que se encargarán cada una de activar un esquema de colores,
+en nuestro caso solo habrán dos, una para la variante oscura y otra para
+la clara:
+#+BEGIN_SRC elisp
+  (defvar themes-list nil "Circular list of themes.")
+#+END_SRC
+
+La función que se encarga de activar la variante oscura de solarized:
+#+BEGIN_SRC elisp
+  (defun solarized-dark-theme ()
+    "Use the solarized dark theme."
+    (interactive)
+    (let ((theme 'solarized-dark))
+      (load-theme theme t)
+      (setq current-theme theme)))
+#+END_SRC
+
+La función que se encarga de activar la variante clara de solarized:
+#+BEGIN_SRC elisp
+  (defun solarized-light-theme ()
+    "Use the solarized light theme."
+    (interactive)
+    (let ((theme 'solarized-light))
+      (load-theme theme t)
+      (setq current-theme theme)))
+#+END_SRC
+
+Inicializamos el listado de esquemas de colores a las dos funciones que
+hemos definido:
+#+BEGIN_SRC elisp
+  (setq themes-list (make-circular-list '(solarized-dark-theme solarized-light-theme)))
+#+END_SRC
+
+Definimos la función que cambiará entre un esquema de color y otro:
+#+BEGIN_SRC elisp
+  (defun use-next-theme ()
+    "Use the next theme in themes-list."
+    (interactive)
+    (funcall (pop themes-list)))
+#+END_SRC
+
+Por último mapeamos ~C-<f8>~ a la función que cambia de esquemas de
+colores y utilizamos la variante que primero aparezca en la lista:
+#+BEGIN_SRC elisp
+  (global-set-key (kbd "C-<f8>") 'use-next-theme)
+  
+  (use-next-theme)
+#+END_SRC
+
+*** Tamaño de fuente
+En mi caso me gusta un tamaño de fuente un poco más grande al predeterminado:
+#+BEGIN_SRC elisp
+  (set-face-attribute 'default nil :height 110)
+#+END_SRC
+
+** Configuración avanzada
 :PROPERTIES:
 :noweb-ref: modos
 :END:
 
-Por defecto algunas cosas en Emacs se pueden sentir un poco alienígenas o peor aún que
-nos de la ilusión que la potencia del editor es bastante limitada. Vamos a arreglar eso.
-
-** Reemplazar selección
+*** Reemplazar selección
 Si tienes un texto seleccionado y comienzas a escribir verás
 que para tu sorpresa Emacs no borra el texto seleccionado sino
 que añade el texto al final de la selección.
@@ -153,7 +292,7 @@ nuevo reemplace al seleccionado, utiliza lo siguiente:
   (delete-selection-mode)
 #+END_SRC
 
-** CamelCase-aware
+*** Tratar palabra CamelCase como dos
 Con este modo activo logramos que palabras en camel-cse como ~HelloWorld There~
 se comporten como dos palabras separadas, es decir, si tenemos el cursor
 sobre la ~H~ y ejecutamos ~M-f~ el cursor se dentrendrá en la ~W~ en lugar
@@ -163,8 +302,8 @@ de en el spacio antes de ~There~.
   (global-subword-mode)
 #+END_SRC
 
-** ido
-ido-mode (Interactively Do Things) es un modo que te deja trabajar con ficheros y buffers
+*** Más interacción
+~ido-mode~ (Interactively Do Things) es un modo que te deja trabajar con ficheros y buffers
 de forma interactiva. Por ejemplo, si ejectuamos el comando para cambiar de buffer ~C-x b~
 veremos que ahora nos muestra el nombre de los buffers disponibles en forma de lista
 horizontal (podemos avanzar a través de la lista con ~C-s~ y retroceder con ~C-r~).
@@ -197,42 +336,7 @@ a otros contextos:
   (global-set-key (kbd "C-x C-i") 'idomenu)
 #+END_SRC
 
-** Cursor
-Con este modo podemos decirle a Emacs que no parpadee el cursor.
-
-#+BEGIN_SRC elisp
-  (blink-cursor-mode -1)
-#+END_SRC
-
-** Clean state
-Eliminemos las innecesarias "scroll-bars" y la barra de herramientas
-que ocupa un espacio sagrado.
-
-#+BEGIN_SRC elisp
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
-#+END_SRC
-
-La barra de menu ha resultado ser de gran ayuda para los principiantes
-ya que es una forma rápida de navegar por las distintas acciones que
-te da el modo en el que estás trabajando por lo que creamos una
-combinación de teclado para mostrarla y ocultarla según necesitemos.
-
-#+BEGIN_SRC elisp
-  (global-set-key (kbd "C-<f5>") 'toggle-menu-bar-mode-from-frame)
-#+END_SRC
-
-** Ausencia de líneas
-Si activamos esta opción Emacs mostrará unas rayas en la franja izquierda de la ventana
-para indicarnos que esa parte del buffer no tiene líneas.
-
-#+BEGIN_SRC elisp
-  (toggle-indicate-empty-lines)
-  (fringe-mode '(4 . 0))
-#+END_SRC
-
-** Auto-recargar ficheros
+*** Auto-recargar ficheros
 Si tienes un archivo abierto en Emacs y es modificado por una aplicación externa por
 defecto el buffer del archivo en Emacs no refleja los cambios hasta que intentes
 editarlo. Con este modo activo hacemos que Emacs recargue automáticamente el archivo
@@ -244,15 +348,15 @@ al detectar que ha sido modificado.
   (setq auto-revert-verbose nil)
 #+END_SRC
 
-** Archivos Recientes
+*** Archivos Recientes
 Con =recentf-mode= activo tendremos acceso a ficheros abiertos recientemente en File > Open Recent.
 
 #+BEGIN_SRC elisp
   (recentf-mode)
 #+END_SRC
 
-** Cursores múltiples
-=multiple-cursors= es un paquete que da soporte a Emacs para cursores
+*** Cursores múltiples
+[[https://github.com/magnars/multiple-cursors.el][multiple-cursors]] es un paquete que da soporte a Emacs para cursores
 múltiples al estilo SublimeText. [[http://www.youtube.com/watch?v%3DjNa3axo40qM][-demo-]]
 
 #+BEGIN_SRC elisp
@@ -264,18 +368,19 @@ múltiples al estilo SublimeText. [[http://www.youtube.com/watch?v%3DjNa3axo40qM
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 #+END_SRC
 
-** Super cursor
-=ace-jump-mode= es un modo que te permite mover el cursor a donde
+*** Movimiento aleatorio del cursor
+[[https://github.com/winterTTr/ace-jump-mode][ace-jump-mode]] es un modo que te permite mover el cursor a donde
 quieras en cualquiera de las ventanas que tengas abiertas. [[http://emacsrocks.com/e10.html][-demo-]]
 
 #+BEGIN_SRC elisp
   (autoload 'ace-jump-mode "ace-jump-mode")
-  (global-set-key (kbd "C-o") 'ace-jump-mode)  
+  (global-set-key (kbd "C-c C-SPC") 'ace-jump-mode)
 #+END_SRC
 
-** Resaltar pares
-Con este mode activo al posicionar el cursor sobre algún caracter "par", este caracter
-y el caracter complementario son resaltados. Caracteres pares son:
+*** Resaltar pares
+Con =show-paren-mode= activo al posicionar el cursor sobre algún
+caracter "par", este caracter y el caracter complementario son
+resaltados. Caracteres pares son:
 - ( y )
 - { y }
 - [ y ]
@@ -284,12 +389,12 @@ y el caracter complementario son resaltados. Caracteres pares son:
   (show-paren-mode)
 #+END_SRC
 
-** Auto-cerrado de pares
-Se ha convertido en tendencia en numerosos editores el hecho de
-que al abrir un paréntesis por ejemplo, el editor automáticamente
-inserte el paréntesis de cierre.
+*** Auto-cerrado de pares
+Se ha convertido en tendencia en numerosos editores el hecho de que al
+abrir un paréntesis por ejemplo, el editor automáticamente inserte el
+paréntesis de cierre.
 
-=smartparens= es un modo que intenta llevar esto hasta los extremos
+[[https://github.com/Fuco1/smartparens][smartparens]] es un modo que intenta llevar esto hasta los extremos
 dejándote definir incluso tus propios "pares".
 
 Para activarlo necesitamos lo siguiente:
@@ -298,13 +403,13 @@ Para activarlo necesitamos lo siguiente:
   (smartparens-global-mode)
 #+END_SRC
 
-Otra cosa muy común sobre todo al editar CSS es que al abrir una
-llave y presionar <Intro> el editor nos posicione el cursor en
-una línea entre la llave de apertura y la llave de cierre.
+Otra cosa muy común sobre todo al editar CSS es que al abrir una llave
+y presionar <Intro> el editor nos posicione el cursor en una línea
+entre la llave de apertura y la llave de cierre.
 
 Por defecto smartparens no soporta esta funcionalidad pero se la
-podemos añadir fácilmente definiendo una función que se encargue
-del trabajo sucio.
+podemos añadir fácilmente definiendo una función que se encargue del
+trabajo sucio.
 #+BEGIN_SRC elisp
   (defun create-newline-and-enter-sexp (&rest _ignored)
     "Open a new brace or bracket expression, with relevant newlines and indent. "
@@ -344,24 +449,50 @@ Definimos dos combinaciones de teclados para:
   (define-key sp-keymap (kbd "C-S-e") 'sp-end-of-sexp)
 #+END_SRC
 
-** Selección expandible
-=expand-region= es una extensión que nos deja ampliar or reducir una
+*** Selección expandible
+[[https://github.com/magnars/expand-region.el][expand-region]] es una extensión que nos deja ampliar or reducir una
 selección utilizando /unidades semánticas/. [[http://emacsrocks.com/e09.html][-demo-]]
 
 #+BEGIN_SRC elisp
   (autoload 'er/expand-region "expand-region")
+#+END_SRC
+
+Para expandir la región utilizamos ~C-@~:
+#+BEGIN_SRC elisp
   (global-set-key (kbd "C-@") 'er/expand-region)
+#+END_SRC
+
+Y para contraer la región utilizamos ~C-!~:
+#+BEGIN_SRC elisp
   (global-set-key (kbd "C-!") 'er/contract-region)
 #+END_SRC
 
-** Buffers con el mismo nombre
-Cuando tienes dos buffers con el mismo nombre Emacs por defecto te
-renombra el segundo añadiéndole al final el suffijo ~<2>~ para
-desambigüar, el 2 es por que hay dos buffers con el mismo nombre, si
-hubieran tres uno tendría el sufijo ~<2>~ y otro el sufijo ~<3>~.  Por
-supuesto, esto está lejos de lo ideal y me sorprende que sea el
-comportamiento por defecto, no obstante podemos arreglarlo con lo
-siguiente:
+*** Extremos de la región
+[[https://github.com/rejeep/wrap-region.el][wrap-region]] es un paquete que viene a ofrecer lo mismo que [[https://github.com/tpope/vim-surround][surround]] para vim y es que con una
+selección activa podamos fácilmente encerrar la selección entre algunos caracteres.
+Por ejemplo si tienes el siguiente texto seleccionado (| es el cursor):
+
+~Lorem ipsum|~
+
+y presionas ~(~ el resultado es:
+
+~(Lorem ipsum)|~
+
+#+BEGIN_SRC elisp
+  (require 'wrap-region)
+  (wrap-region-mode)
+#+END_SRC
+
+[gif]
+
+*** Archivos con el mismo nombre
+Cuando tienes abiertos dos archivos con el mismo nombre Emacs por
+defecto te renombra el buffer del segundo añadiéndole al final el
+suffijo ~<2>~ para desambigüar, el 2 es por que hay dos buffers con el
+mismo nombre, si hubieran tres uno tendría el sufijo ~<2>~ y otro el
+sufijo ~<3>~.  Por supuesto, esto está lejos de lo ideal y me
+sorprende que sea el comportamiento por defecto, no obstante podemos
+arreglarlo con ~uniquify~:
 
 #+BEGIN_SRC elisp
   (require 'uniquify)
@@ -378,21 +509,51 @@ al fichero asociado al buffer. Puedes ver los otros estilos a través
 de =M-x customize-group<RET>uniquify= y específicamente en la opción
 ~Uniquify Buffer Name Style~.
 
-** Sexy
-Por último vamos a utilizar el modo =pretty-mode= para sustituir
-algunos nombres de nuestro lenguaje de programación por caracteres
-unicode más expresivos:
+*** Código con sintaxis más sexy
+Vamos a utilizar el modo =pretty-mode= para sustituir algunos nombres
+de nuestro lenguaje de programación por caracteres unicode más
+expresivos:
 
 #+BEGIN_SRC elisp
   (require 'pretty-mode)
   (global-pretty-mode)
 #+END_SRC
 
-* Soporte para proyectos
+[[file:img/pretty-mode-1.png]]
+
+*** Atajos de teclado
+[[https://github.com/yuutayamada/mykie-el][Mykie]] es un *command multiplexer* que nos permite asociar más de un
+comando a un mismo atajo de teclado mediante el uso del comando
+universal ~C-u~.
+
+#+BEGIN_SRC elisp
+  (require 'mykie)
+  (setq mykie:use-major-mode-key-override t)
+  (mykie:initialize)
+#+END_SRC
+
+Ya sabemos que ~C-a~ pone el cursor al inicio de la línea, utilicemos
+este paquete para modificar ese atajo para que si utilizamos ~C-u~
+como prefijo en lugar de llevarnos al inicio de línea nos lleve al
+inicio del buffer. Hagamos también lo mismo ~C-e~: si utilizams el
+prefijo ~C-u~ que nos lleve al final del buffer.
+
+#+BEGIN_SRC elisp
+  (mykie:set-keys nil
+    "C-a" :default beginning-of-line :C-u beginning-of-buffer
+    "C-e" :default end-of-line :C-u end-of-buffer
+    )
+#+END_SRC
+
+La ventaja radica en que los atajos por defecto para ir al principio
+~M-<~ y al final ~M->~ del buffer me resultan bastante incómodos de
+teclear.
+
+** Soporte para proyectos
 :PROPERTIES:
 :noweb-ref: modos
 :END:
-** Pestañas
+*** Pestañas
 =tabbar= es un modo que permite ver los buffers que tienes abiertos en
 forma de pestañas como en los navegadores web. El comportamiento por
 defecto es solo mostrar los buffers con el mismo modo del que estás
@@ -406,7 +567,8 @@ Vamos a crear dos combinaciones de teclados para movernos fácilmente
 entre las pestañas.
 
 #+BEGIN_SRC elisp
-  (require 'tabbar-ruler)
+  (eval-after-load "tabbar" '(require 'tabbar-ruler))
+  
   (global-set-key (kbd "C-{") 'tabbar-backward-tab)
   (global-set-key (kbd "C-}") 'tabbar-forward-tab)
 #+END_SRC
@@ -435,16 +597,18 @@ agrupe las pestañas en tres grupos principales:
   (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
 #+END_SRC
 
-Podemos activar y desactivar las pestañas con ~C-F6~:
+Podemos activar y desactivar las pestañas con ~C-F6~ y por defecto
+que aparezca oculta:
 
 #+BEGIN_SRC elisp
   (global-set-key (kbd "C-<f6>") 'tabbar-mode)
+  (tabbar-mode -1)
 #+END_SRC
 
 Por último con ~C-c C-↓~ podemos navegar por los diferentes
 grupos de pestañas que tenemos.
 
-** Barra lateral
+*** Barra lateral
 =speedbar= es un modo que ya viene integrado en Emacs y
 que nos da acceso a un navegador de archivos en forma de
 barra lateral. Por defecto se muestra a la derecha y con
@@ -474,7 +638,7 @@ esconder fácilmente la barra lateral con ~C-<F7>~.
   (global-set-key (kbd "C-<f7>") 'sr-speedbar-toggle) 
 #+END_SRC
 
-** Analizar la sintaxis on-the-fly
+*** Analizar la sintaxis on-the-fly
 =flycheck= es un modo global para Emacs que analiza la sintaxis
 de nuestro código /on-the-fly/ y que soporta un montón de lenguajes.
 Vamos a hacernos un favor y activar el modo para todos nuestros buffers:
@@ -485,7 +649,7 @@ Vamos a hacernos un favor y activar el modo para todos nuestros buffers:
 
 [[file:img/flycheck.png]]
 
-** Soporte para snippets
+*** Soporte para snippets
 =Yasnippet= es el modo de la mano del cuál tendremos acceso
 a snippets. Si has sido usuario de TextMate alguna vez con
 este modo te sentirás como en casa:
@@ -495,7 +659,7 @@ este modo te sentirás como en casa:
   (yas-global-mode 1)
 #+END_SRC
 
-** Múltiples archivos
+*** Múltiples archivos
 [[https://github.com/bbatsov/projectile][Projectile]] es otro modo global que nos facilita el trabajo con
 proyectos, de hecho una de las cosas que más me gusta es que
 sin necesidad de configurar nada automáticamente detecta si estás
@@ -507,14 +671,14 @@ el proyecto.
   (projectile-global-mode)
 #+END_SRC
 
-** Git
+*** Git
 [[https://github.com/magit/magit][Magit]] es una interfaz para trabajar con git a través de Emacs.
 
 #+BEGIN_SRC elisp
   (require 'magit)
 #+END_SRC
 
-** Terminal
+*** Terminal
 [[https://github.com/milkypostman/multi-term][multi-term]] es mi herramienta favorita cuando quiero abrir terminales
 desde dentro de Emacs.
 
@@ -541,9 +705,7 @@ desde dentro de Emacs.
            (cons "M-f" 'term-send-forward-word)
            (cons "M-d" 'term-send-forward-kill-word)
            (cons "M-." 'term-send-raw-meta)
-           (cons "C-k" 'term-send-raw))
-          term-buffer-maximum-size 10000)
-    (setq term-buffer-maximum-size 10000)
+           (cons "C-k" 'term-send-raw)))
     (define-key term-raw-map (kbd "C-y") 'term-paste)
     (define-key term-raw-map (kbd "C-c C-e") 'custom-term-send-esc)
     (define-key term-raw-map (kbd "C-<backspace>") 'custom-term-send-backward-kill-word)
@@ -562,4 +724,119 @@ desde dentro de Emacs.
     (interactive)
     (term-send-raw-string ""))
   
+  (defun disable-term-conflicting-modes ()
+    (yas-minor-mode -1))
+  
+  (add-hook 'term-mode-hook 'disable-term-conflicting-modes)
+#+END_SRC
+** Soporte para lenguajes
+*** Python
+:PROPERTIES:
+:noweb-ref: python
+:END:
+
+=fill-column-indicator=
+
+#+BEGIN_SRC elisp
+  (add-to-list 'auto-mode-alist '("/requirements\\.txt\\'" . conf-mode))
+  
+  (add-hook 'python-mode-hook 'setup-python-mode)
+  
+  (defun setup-python-mode ()
+    (setq python-shell-interpreter "ipython"
+          python-shell-interpreter-args ""
+          cleanup-whitespace-on-save t
+          venv-location "~/.virtualenvs"
+          whitespace-line-column 99
+          fill-column 99
+          whitespace-style '(lines-tail tabs tab-mark trailing empty))
+    (fci-mode)
+    (add-hook 'before-save-hook 'whitespace-cleanup nil t)
+    (highlight-lines-matching-regexp "import i?pdb")
+    (highlight-lines-matching-regexp "i?pdb.set_trace()"))
+
+  (add-to-list 'auto-mode-alist '("\\.jinja\\'" . html-mode))
+#+END_SRC
+
+*** HTML
+
+#+BEGIN_SRC elisp
+  (defadvice sgml-delete-tag (after reindent-buffer activate)
+    (indent-region (point-min) (point-max)))
+  
+  (add-hook 'html-mode-hook 'setup-html-mode)
+  
+  (defun setup-html-mode ()
+    (setq sgml-basic-offset 4))
+#+END_SRC
+* Trucos
+- Deshacer cambios en una región
+* Lisp
+:PROPERTIES:
+:noweb-ref: lisp
+:END:
+
+Función para crear listas circulares:
+#+BEGIN_SRC elisp
+  (defun make-circular-list (list)
+    "Create a circular version of list."
+    (setf (cdr list) list)
+    list)
+#+END_SRC
+
+-----
+
+Unir siguiente línea con la actual:
+#+BEGIN_SRC elisp
+  (defun join-line-below ()
+    "Join line bellow current line."
+    (interactive)
+    (join-line -1))
+  
+  (global-set-key (kbd "M-j") 'join-line-below)
+#+END_SRC
+
+-----
+
+Este comando nos permite borrar un buffer y su fichero a la misma vez.
+El comando es una modificación de otro que encontré en este blog: [[http://tuxicity.se/emacs/elisp/2010/11/16/delete-file-and-buffer-in-emacs.html][tuxicity]].
+
+#+BEGIN_SRC elisp
+  (defun kill-this-buffer-and-file (buffer-name)
+    "Removes file connected to current buffer and kills buffer."
+    (interactive "bKill buffer and its file:")
+    (let* ((buffer (get-buffer buffer-name))
+           (filename (buffer-file-name buffer)))
+      (if (not (and filename (file-exists-p filename)))
+          (error "Buffer '%s' is not visiting a file!" buffer-name)
+        (delete-file filename)
+        (kill-buffer buffer))))
+#+END_SRC
+
+Aprovechemos el paquete mykie para que si utilizamos el comando
+universal ~C-u~ junto al comando de borrar un buffer ~C-x k~ ejecute
+este comando en su lugar:
+
+#+BEGIN_SRC elisp
+  (mykie:set-keys nil
+    "C-x k" :default kill-buffer :C-u kill-this-buffer-and-file)
+#+END_SRC
+
+* --
+#+BEGIN_SRC elisp :tangle ~/.emacs.d/init.el :noweb yes
+  <<cask>>
+  
+  (setq
+   <<general>>
+  )
+  
+  <<lisp>>
+
+  <<apariencia>>
+
+  <<modos>>
+  
+  <<diminish>>
+
+  <<python>>
 #+END_SRC
