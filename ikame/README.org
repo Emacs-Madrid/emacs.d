@@ -552,6 +552,22 @@ La ventaja radica en que los atajos por defecto para ir al principio
 ~M-<~ y al final ~M->~ del buffer me resultan bastante incómodos de
 teclear.
 
+*** Navegar el sistema de archivos
+
+Con el modo ~dired-x~ activo al presionar ~C-x C-j~ saltas a un buffer
+dired del directorio que contiene al fichero y el cursor encima del
+nombre del fichero:
+#+BEGIN_SRC elisp
+  (require 'dired-x)
+#+END_SRC
+
+Reutilizar el buffer de dired al subir en la jerarquía ~^~:
+#+BEGIN_SRC elisp
+  (put 'dired-find-alternate-file 'disabled nil)
+  
+  (mykie:set-keys dired-mode-map
+    "^" :default (find-alternate-file "..") :C-u dired-up-directory)
+#+END_SRC
 ** Soporte para proyectos
 :PROPERTIES:
 :noweb-ref: modos
