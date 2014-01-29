@@ -1,3 +1,6 @@
 [submodule "ikame"]
 	path = ikame
 	url = https://github.com/ikame/.emacs.d.git
+[submodule "mgdelacroix"]
+	path = mgdelacroix
+	url = https://github.com/mgdelacroix/emacs.d.git
