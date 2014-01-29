@@ -1,0 +1,3 @@
+[submodule "ikame"]
+	path = ikame
+	url = https://github.com/ikame/.emacs.d.git
