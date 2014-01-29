@@ -762,21 +762,30 @@ desde dentro de Emacs.
   (add-hook 'python-mode-hook 'setup-python-mode)
   
   (defun setup-python-mode ()
-    (setq python-shell-interpreter "ipython"
-          python-shell-interpreter-args ""
-          cleanup-whitespace-on-save t
-          venv-location "~/.virtualenvs"
-          whitespace-line-column 99
-          fill-column 99
-          whitespace-style '(lines-tail tabs tab-mark trailing empty))
+    (let ((max-column 99))
+      (setq python-shell-interpreter "ipython"
+            python-shell-interpreter-args ""
+            cleanup-whitespace-on-save t
+            venv-location "~/.virtualenvs"
+            whitespace-line-column max-column
+            fill-column max-column
+            flycheck-flake8-maximum-line-length max-column
+            whitespace-style '(lines-tail tabs tab-mark trailing empty)))
     (fci-mode)
     (add-hook 'before-save-hook 'whitespace-cleanup nil t)
     (highlight-lines-matching-regexp "import i?pdb")
     (highlight-lines-matching-regexp "i?pdb.set_trace()"))
-
+    
   (add-to-list 'auto-mode-alist '("\\.jinja\\'" . html-mode))
 #+END_SRC
 
+-----
+
+Omitir que ~dired-x~ muestre los archivos ~pyc~
+
+#+BEGIN_SRC elisp
+  (setq-default dired-omit-files-p t)
+#+END_SRC
 *** HTML
 
 #+BEGIN_SRC elisp
@@ -803,6 +812,23 @@ Función para crear listas circulares:
     list)
 #+END_SRC
 
+-----
+
+Una cosa que utilizaba mucho en VIM era hacer scroll hacia arriba y
+hacia abajo una línea al tiempo. Quiero la misma funcionalidad en
+Emacs y dado que utilizo un teclado [[http://www.kinesis-ergo.com/shop/advantage-for-pc-mac/][Kinesis]] y que tiene las teclas
+de arriba y abajo muy a mano voy a mapearlo de esta forma:
+
+- ~<up>~ scroll hacia arriba una línea.
+- ~<down>~ scroll hacia abajo una línea.
+
+#+BEGIN_SRC elisp
+  (mykie:set-keys nil
+    "<down>" :default (progn (next-line)
+                             (scroll-up-command 1))
+    "<up>" :default (progn (scroll-down-command 1)
+                           (previous-line)))
+#+END_SRC
 -----
 
 Unir siguiente línea con la actual:
